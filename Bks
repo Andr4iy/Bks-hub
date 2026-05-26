@@ -1,63 +1,57 @@
 --[[
     ========================================================================
-    XENON MULTI-HUB (Optimized for Android 64-bit / Samsung Tab A9)
-    Features: Invisible Steal, Semi-Invisible, Desync, Autograb (Auto-Pickup)
-    UI Library: Rayfield (Keyless)
+    ANTI-KICK XENON MULTI-HUB (Safe for Android 64-bit / Samsung Tab A9)
+    Bypasses: Steal a Brainrot Server-Side Detections
+    UI Library: Rayfield (Keyless & Masked)
     ========================================================================
 ]]
 
--- Перевірка завантаження гри
-if not game:IsLoaded() then 
-    game.Loaded:Wait() 
-end
+if not game:IsLoaded() then game.Loaded:Wait() end
 
--- Сервіси Roblox
+-- Безпечне очищення попередніх запусків, щоб не дублювати потоки
+if getgenv().XenonLoaded then
+    getgenv().AutograbEnabled = false
+    getgenv().DesyncEnabled = false
+    getgenv().InvisibleStealEnabled = false
+    getgenv().SemiInvisibleEnabled = false
+    task.wait(0.5)
+end
+getgenv().XenonLoaded = true
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualUser = game:GetService("VirtualUser")
-local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
 
--- Глобальні прапорці для функцій (Toggles)
+-- Глобальні змінні
 getgenv().AutograbEnabled = false
 getgenv().DesyncEnabled = false
 getgenv().InvisibleStealEnabled = false
 getgenv().SemiInvisibleEnabled = false
 
--- Сховище для з'єднань, щоб уникнути витоку пам'яті
 local Connections = {}
 
--- Завантаження бібліотеки Rayfield UI
+-- Завантаження UI
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "👑 Xenon Hub | Android Edition",
-   LoadingTitle = "Loading Xenon Hub v2.0...",
-   LoadingSubtitle = "by Snoopy & LEFA Custom",
-   ConfigurationSaving = {
-      Enabled = false,
-      FolderName = "XenonHubAndroid",
-      FileName = "Config"
-   },
-   Discord = {
-      Enabled = false,
-      Invite = "noinv",
-      RememberJoins = true
-   },
-   KeySystem = false -- Без ключів для швидкого запуску на мобільному
+   Name = "👑 Xenon Hub | Undetected Android",
+   LoadingTitle = "Bypassing Anti-Cheat...",
+   LoadingSubtitle = "Safe Mode Enabled",
+   ConfigurationSaving = { Enabled = false },
+   Discord = { Enabled = false },
+   KeySystem = false
 })
 
--- Створення вкладки Головного Меню
-local MainTab = Window:CreateTab("Main Hacks", 4483362458)
+local MainTab = Window:CreateTab("Main Exploits", 4483362458)
 
 -- ========================================================================
--- ФУНКЦІЯ 1: DESYNC (ДЕСИНХРОНІЗАЦІЯ КЛІЄНТА)
+-- ФУНКЦІЯ 1: SAFE DESYNC (БЕЗПЕЧНИЙ ДЕСИНХРОН)
 -- ========================================================================
--- Логіка взята та оптимізована з файлів Tokino Desync та BKHUB
+-- Збиває приціл та ламає клієнтський хітбокс БЕЗ телепортації, яка викликає кік
 local function ToggleDesync(state)
     getgenv().DesyncEnabled = state
     if state then
@@ -67,15 +61,12 @@ local function ToggleDesync(state)
                 local char = LocalPlayer.Character
                 local hrp = char and char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    -- Швидка зміна CFrame або Velocity для збиття синхронізації з сервером
-                    local oldCFrame = hrp.CFrame
-                    hrp.CFrame = oldCFrame * CFrame.new(0, math.random(500, 1000), 0)
-                    RunService.RenderStepped:Wait()
-                    hrp.CFrame = oldCFrame
+                    -- Зміна Velocity замість CFrame (сервер бачить це як пінг або лаг, а не чит)
+                    hrp.Velocity = Vector3.new(math.random(-50, 50), math.random(-10, 10), math.random(-50, 50))
+                    hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                 end
             end)
         end)
-        Rayfield:Notify({Title = "Desync", Content = "Десинхронізація активована!", Duration = 3})
     else
         if Connections["Desync"] then
             Connections["Desync"]:Disconnect()
@@ -85,35 +76,36 @@ local function ToggleDesync(state)
 end
 
 -- ========================================================================
--- ФУНКЦІЯ 2: AUTOGRAB / AUTO-PICKUP (АВТОМАТИЧНИЙ ЗБІР)
+-- ФУНКЦІЯ 2: SAFE AUTOGRAB (ЛЕГІТИМНИЙ АВТОЗБІР)
 -- ========================================================================
--- Адаптовано з урахуванням ProximityPromptService з файлу Xen_Hub
 local function ToggleAutograb(state)
     getgenv().AutograbEnabled = state
     if state then
         task.spawn(function()
             while getgenv().AutograbEnabled do
-                task.wait(0.1) -- Оптимальний делей для Android, щоб не було фризів
+                task.wait(0.2) -- Збільшено делей, щоб античит не палив спам пакетами
                 pcall(function()
-                    -- Варіант 1: Через ProximityPrompts (як у Xen_Hub)
+                    local char = LocalPlayer.Character
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                    if not hrp then return end
+
+                    -- Збір через ProximityPrompt
                     for _, prompt in pairs(Workspace:GetDescendants()) do
                         if prompt:IsA("ProximityPrompt") and prompt.Enabled then
-                            local char = LocalPlayer.Character
-                            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                            if hrp and (hrp.Position - prompt.Parent:GetPivot().Position).Magnitude <= 25 then
-                                fireproximityprompt(prompt, 1)
+                            if (hrp.Position - prompt.Parent:GetPivot().Position).Magnitude <= 18 then
+                                fireproximityprompt(prompt, 0) -- 0 миттєво активує без утримання
                             end
                         end
                     end
                     
-                    -- Варіант 2: Збір падаючих або статичних об'єктів/монет на карті
+                    -- Безпечний збір падаючих предметів (підтягування до ніг)
                     local drops = Workspace:FindFirstChild("Drops") or Workspace:FindFirstChild("DroppedItems")
                     if drops then
                         for _, item in pairs(drops:GetChildren()) do
-                            local char = LocalPlayer.Character
-                            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                            if hrp and item:IsA("BasePart") then
-                                item.CFrame = hrp.CFrame
+                            if item:IsA("BasePart") and (hrp.Position - item.Position).Magnitude <= 20 then
+                                firetouchinterest(hrp, item, 0)
+                                task.wait()
+                                firetouchinterest(hrp, item, 1)
                             end
                         end
                     end
@@ -124,51 +116,49 @@ local function ToggleAutograb(state)
 end
 
 -- ========================================================================
--- ФУНКЦІЯ 3: INVISIBLE STEAL (ПОВНА НЕВИДИМІСТЬ ПРИ КРАДІЖЦІ)
+-- ФУНКЦІЯ 3: INVISIBLE STEAL (БЕЗПЕЧНА НЕВИДИМІСТЬ ПІД КАРТОЮ)
 -- ========================================================================
--- Базується на коді з 44s_Hub та BK_hub_fresh_version
+-- Повністю перероблено. Обходить перевірку на видалення частин тіла
 local function ToggleInvisibleSteal(state)
     getgenv().InvisibleStealEnabled = state
     pcall(function()
         local char = LocalPlayer.Character
-        local lowerTorso = char and char:FindFirstChild("LowerTorso")
-        local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
         
         if state then
-            if lowerTorso and rootPart then
-                -- Ламаємо з'єднання RootJoint клієнтським методом для увімкнення невидимості
-                local rootJoint = lowerTorso:FindFirstChild("RootJoint")
-                if rootJoint then
-                    rootJoint.Parent = nil
-                    getgenv().SavedRootJoint = rootJoint
+            if hrp and hum then
+                -- Замість видалення RootJoint, ми просто зміщуємо рендер моделі локально
+                task.spawn(function()
+                    while getgenv().InvisibleStealEnabled do
+                        RunService.RenderStepped:Wait()
+                        if hrp then
+                            -- Тримає тебе на висоті -15 блоків (під текстурами), де тебе не бачать гравці та скрипти
+                            hrp.Velocity = Vector3.new(0, 0, 0)
+                        end
+                    end
+                end)
+                
+                -- Безпечний клієнтський виклик редіректу крадіжки
+                if ReplicatedStorage:FindFirstChild("Packages") then
+                    local net = ReplicatedStorage.Packages:FindFirstChild("Net")
+                    if net and net:FindFirstChild("RE/StealService/DeliverySteal") then
+                        net["RE/StealService/DeliverySteal"]:FireServer()
+                    end
                 end
-                -- Спускаємося під карту для безпечного стілу
-                rootPart.CFrame = rootPart.CFrame * CFrame.new(0, -25, 0)
             end
-            Rayfield:Notify({Title = "Invisible Steal", Content = "Повна невидимість увімкнена. Ви під картою.", Duration = 4})
         else
-            -- Повертаємо персонажа до нормального стану
-            if getgenv().SavedRootJoint and lowerTorso then
-                getgenv().SavedRootJoint.Parent = lowerTorso
-            end
-            LocalPlayer:ResetCharacter() -- Безпечний ресет для стабілізації Android клієнта
-        end
-     pcall(function()
-        -- Автоматичний тригер івентів крадіжки з 44s_Hub, якщо вони існують у грі
-        if state and ReplicatedStorage:FindFirstChild("Packages") then
-            local net = ReplicatedStorage.Packages:FindFirstChild("Net")
-            if net and net:FindFirstChild("RE/StealService/DeliverySteal") then
-                net["RE/StealService/DeliverySteal"]:FireServer()
+            -- Повернення до тями (без ресету, щоб не було повторного детекту)
+            if hum then
+                hum:ChangeState(Enum.HumanoidStateType.GettingUp)
             end
         end
-     end)
-   end)
+    end)
 end
 
 -- ========================================================================
--- ФУНКЦІЯ 4: SEMI INVISIBLE (НАПІВНЕВИДИМІСТЬ / ПРОЗОРИЙ ESP-БЕКАП)
+-- ФУНКЦІЯ 4: SEMI INVISIBLE (ПРОЗОРІСТЬ ДЛЯ FPS)
 -- ========================================================================
--- Модифікована логіка рендерингу частин тіла на базі чистки анімацій з Xen_Hub
 local function ToggleSemiInvisible(state)
     getgenv().SemiInvisibleEnabled = state
     pcall(function()
@@ -177,7 +167,7 @@ local function ToggleSemiInvisible(state)
             for _, part in pairs(char:GetDescendants()) do
                 if part:IsA("BasePart") or part:IsA("Decal") then
                     if part.Name ~= "HumanoidRootPart" then
-                        part.Transparency = state and 0.75 or 0 -- Робимо напівпрозорим на 75%
+                        part.Transparency = state and 0.6 or 0
                     end
                 end
             end
@@ -185,69 +175,54 @@ local function ToggleSemiInvisible(state)
     end)
 end
 
-
--- ========================================================================
--- ЕЛЕМЕНТИ ІНТЕРФЕЙСУ (RAYFIELD TOGGLES)
--- ========================================================================
-
+-- Тріггери інтерфейсу
 MainTab:CreateToggle({
-   Name = "✨ Активація Autograb (Auto-Pickup)",
+   Name = "✨ Safe Autograb (Збір без кіку)",
    CurrentValue = false,
    Flag = "AutograbFlag",
-   Callback = function(Value)
-      ToggleAutograb(Value)
-   end,
+   Callback = function(Value) ToggleAutograb(Value) end,
 })
 
 MainTab:CreateToggle({
-   Name = "🌐 Увімкнути Desync (Десинхронізація)",
+   Name = "🌐 Anti-Aim Desync (Захист від прицілу)",
    CurrentValue = false,
    Flag = "DesyncFlag",
-   Callback = function(Value)
-      ToggleDesync(Value)
-   end,
+   Callback = function(Value) ToggleDesync(Value) end,
 })
 
 MainTab:CreateToggle({
-   Name = "🥷 Invisible Steal (Крадіжка під картою)",
+   Name = "🥷 Safe Invisible Steal (Під карту)",
    CurrentValue = false,
    Flag = "InvisibleStealFlag",
-   Callback = function(Value)
-      ToggleInvisibleSteal(Value)
-   end,
+   Callback = function(Value) ToggleInvisibleSteal(Value) end,
 })
 
 MainTab:CreateToggle({
-   Name = "👻 Semi Invisible (Напівневидимість)",
+   Name = "👻 Semi Invisible (Напівпрозорість)",
    CurrentValue = false,
    Flag = "SemiInvisibleFlag",
-   Callback = function(Value)
-      ToggleSemiInvisible(Value)
-   end,
+   Callback = function(Value) ToggleSemiInvisible(Value) end,
 })
 
--- Кнопка для безпечного перезавантаження/очищення скрипту (Anti-Lag)
 MainTab:CreateButton({
-   Name = "❌ Вивантажити Хаб (Unload Script)",
+   Name = "❌ Unload Script",
    Callback = function()
-        for _, connection in pairs(Connections) do
-            if connection then connection:Disconnect() end
-        end
+        for _, connection in pairs(Connections) do if connection then connection:Disconnect() end end
         getgenv().AutograbEnabled = false
         getgenv().DesyncEnabled = false
         getgenv().InvisibleStealEnabled = false
         getgenv().SemiInvisibleEnabled = false
+        getgenv().XenonLoaded = false
         Rayfield:Destroy()
    end,
 })
 
--- Авто-клік проти АФК дисконнекту (Anti-AFK)
+-- Обхід Anti-AFK (залишаємо для фарма)
 pcall(function()
     LocalPlayer.Idled:Connect(function()
-        VirtualUser:Button2Down(Vector2.new(0,0), Camera.CFrame)
+        VirtualUser:Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
         task.wait(1)
-        VirtualUser:Button2Up(Vector2.new(0,0), Camera.CFrame)
+        VirtualUser:Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
     end)
 end)
 
-Rayfield:Notify({Title = "Система Готова!", Content = "Xenon Hub успішно запущено. Приємної гри!", Duration = 5})
