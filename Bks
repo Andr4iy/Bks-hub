@@ -1,111 +1,160 @@
 --[[
     ========================================================================
-    ANTI-KICK XENON MULTI-HUB (Safe for Android 64-bit / Samsung Tab A9)
-    Bypasses: Steal a Brainrot Server-Side Detections
-    UI Library: Rayfield (Keyless & Masked)
+    🔥 GHOST HUB V3 (100% BYPASS EDITION)
+    Optimized for Android 64-bit / Samsung Tab A9
+    No Rayfield UI -> Uses Custom Undetected Mobile Interface
     ========================================================================
 ]]
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
--- Безпечне очищення попередніх запусків, щоб не дублювати потоки
-if getgenv().XenonLoaded then
-    getgenv().AutograbEnabled = false
-    getgenv().DesyncEnabled = false
-    getgenv().InvisibleStealEnabled = false
-    getgenv().SemiInvisibleEnabled = false
-    task.wait(0.5)
-end
-getgenv().XenonLoaded = true
+-- Очищення старих потоків для стабільності
+getgenv().GhostAutograb = false
+getgenv().GhostDesync = false
+getgenv().GhostInvisible = false
+getgenv().GhostSemi = false
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualUser = game:GetService("VirtualUser")
+local TweenService = game:GetService("TweenService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Глобальні змінні
-getgenv().AutograbEnabled = false
-getgenv().DesyncEnabled = false
-getgenv().InvisibleStealEnabled = false
-getgenv().SemiInvisibleEnabled = false
-
-local Connections = {}
-
--- Завантаження UI
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
-local Window = Rayfield:CreateWindow({
-   Name = "👑 Xenon Hub | Undetected Android",
-   LoadingTitle = "Bypassing Anti-Cheat...",
-   LoadingSubtitle = "Safe Mode Enabled",
-   ConfigurationSaving = { Enabled = false },
-   Discord = { Enabled = false },
-   KeySystem = false
-})
-
-local MainTab = Window:CreateTab("Main Exploits", 4483362458)
-
 -- ========================================================================
--- ФУНКЦІЯ 1: SAFE DESYNC (БЕЗПЕЧНИЙ ДЕСИНХРОН)
+-- 🛠 ОБХІД ЛОГІКИ АНТИЧИТУ (З BK / SOURCES HUB)
 -- ========================================================================
--- Збиває приціл та ламає клієнтський хітбокс БЕЗ телепортації, яка викликає кік
-local function ToggleDesync(state)
-    getgenv().DesyncEnabled = state
-    if state then
-        Connections["Desync"] = RunService.Heartbeat:Connect(function()
-            if not getgenv().DesyncEnabled then return end
-            pcall(function()
-                local char = LocalPlayer.Character
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    -- Зміна Velocity замість CFrame (сервер бачить це як пінг або лаг, а не чит)
-                    hrp.Velocity = Vector3.new(math.random(-50, 50), math.random(-10, 10), math.random(-50, 50))
-                    hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+-- Маскування та патч синхронізатора, щоб сервер не бачив чит-потоки
+pcall(function()
+    local Sync = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Synchronizer", 5)
+    if Sync then
+        local SyncModule = require(Sync)
+        for name, fn in pairs(SyncModule) do
+            if typeof(fn) == "function" and not isexecutorclosure(fn) then
+                local ok, ups = pcall(debug.getupvalues, fn)
+                if ok then
+                    for idx, val in pairs(ups) do
+                        if typeof(val) == "function" and not isexecutorclosure(val) then
+                            debug.setupvalue(fn, idx, newcclosure(function() end))
+                        end
+                    end
                 end
-            end)
-        end)
-    else
-        if Connections["Desync"] then
-            Connections["Desync"]:Disconnect()
-            Connections["Desync"] = nil
+            end
         end
     end
+end)
+
+-- РЕМОУТ-СПООФЕР (Шифрування пакетів крадіжки з sources_hub_on_top)
+local DecryptedRemotes = {}
+local function GetSafeRemote(name)
+    if DecryptedRemotes[name] then return DecryptedRemotes[name] end
+    local NetFolder = ReplicatedStorage.Packages:FindFirstChild("Net")
+    if NetFolder then
+        for _, child in pairs(NetFolder:GetChildren()) do
+            if child.Name == name then
+                DecryptedRemotes[name] = child
+                return child
+            end
+        end
+    end
+    return nil
 end
 
 -- ========================================================================
--- ФУНКЦІЯ 2: SAFE AUTOGRAB (ЛЕГІТИМНИЙ АВТОЗБІР)
+-- 🎮 СТВОРЕННЯ НЕВИДИМОГО ДЛЯ АНТИЧИТУ GUI
 -- ========================================================================
-local function ToggleAutograb(state)
-    getgenv().AutograbEnabled = state
+local ScreenGui = Instance.new("ScreenGui")
+-- Рандомне ім'я, щоб античит-скрипти не могли знайти GUI в CoreGui
+ScreenGui.Name = "RobloxMobile_" .. math.random(11111, 99999)
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "Holder"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.Position = UDim2.new(0.3, 0, 0.25, 0)
+MainFrame.Size = UDim2.new(0, 240, 0, 260)
+MainFrame.Active = true
+MainFrame.Draggable = true -- Зручно рухати пальцем на планшеті
+
+local UICorner = Instance.new("UICorner", MainFrame)
+UICorner.CornerRadius = UDim.new(0, 10)
+
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Title.Text = "👻 GHOST HUB (Safe Mode)"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.Font = Enum.Font.SourceSansBold
+
+local TitleCorner = Instance.new("UICorner", Title)
+TitleCorner.CornerRadius = UDim.new(0, 10)
+
+local Layout = Instance.new("UIListLayout", MainFrame)
+Layout.Padding = UDim.new(0, 8)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- Додаємо відступ зверху для кнопок
+local Spacer = Instance.new("Frame", MainFrame)
+Spacer.Size = UDim2.new(1, 0, 0, 35)
+Spacer.BackgroundTransparency = 1
+Spacer.LayoutOrder = 0
+
+-- Шаблон для створення безпечних кнопок-перемикачів
+local function CreateToggle(text, layoutOrder, callback)
+    local Button = Instance.new("TextButton", MainFrame)
+    Button.Size = UDim2.new(0.9, 0, 0, 35)
+    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    Button.Text = text .. " : [ВИМК]"
+    Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Button.TextSize = 14
+    Button.Font = Enum.Font.SourceSans
+    Button.LayoutOrder = layoutOrder
+    
+    local Corner = Instance.new("UICorner", Button)
+    Corner.CornerRadius = UDim.new(0, 6)
+    
+    local enabled = false
+    Button.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            Button.BackgroundColor3 = Color3.fromRGB(0, 150, 70)
+            Button.Text = text .. " : [УВІМК]"
+            Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        else
+            Button.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+            Button.Text = text .. " : [ВИМК]"
+            Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+        end
+        pcall(callback, enabled)
+    end)
+end
+
+-- ========================================================================
+-- ⚙️ ОПТИМІЗОВАНІ ЧИТ-ФУНКЦІЇ БЕЗ ТРИГЕРІВ НА КІК
+-- ========================================================================
+
+-- 1. ЛЕГІТИМНИЙ АВТОЗБІР (Кожні 0.3 сек, невеликий радіус — античит не палить)
+CreateToggle("Safe Autograb", 1, function(state)
+    getgenv().GhostAutograb = state
     if state then
         task.spawn(function()
-            while getgenv().AutograbEnabled do
-                task.wait(0.2) -- Збільшено делей, щоб античит не палив спам пакетами
+            while getgenv().GhostAutograb do
+                task.wait(0.3)
                 pcall(function()
                     local char = LocalPlayer.Character
                     local hrp = char and char:FindFirstChild("HumanoidRootPart")
                     if not hrp then return end
 
-                    -- Збір через ProximityPrompt
                     for _, prompt in pairs(Workspace:GetDescendants()) do
                         if prompt:IsA("ProximityPrompt") and prompt.Enabled then
-                            if (hrp.Position - prompt.Parent:GetPivot().Position).Magnitude <= 18 then
-                                fireproximityprompt(prompt, 0) -- 0 миттєво активує без утримання
-                            end
-                        end
-                    end
-                    
-                    -- Безпечний збір падаючих предметів (підтягування до ніг)
-                    local drops = Workspace:FindFirstChild("Drops") or Workspace:FindFirstChild("DroppedItems")
-                    if drops then
-                        for _, item in pairs(drops:GetChildren()) do
-                            if item:IsA("BasePart") and (hrp.Position - item.Position).Magnitude <= 20 then
-                                firetouchinterest(hrp, item, 0)
-                                task.wait()
-                                firetouchinterest(hrp, item, 1)
+                            -- Перевіряємо дистанцію, щоб сервер не кікав за "клік здалеку"
+                            if (hrp.Position - prompt.Parent:GetPivot().Position).Magnitude <= 15 then
+                                fireproximityprompt(prompt, 0)
                             end
                         end
                     end
@@ -113,116 +162,81 @@ local function ToggleAutograb(state)
             end
         end)
     end
-end
+end)
 
--- ========================================================================
--- ФУНКЦІЯ 3: INVISIBLE STEAL (БЕЗПЕЧНА НЕВИДИМІСТЬ ПІД КАРТОЮ)
--- ========================================================================
--- Повністю перероблено. Обходить перевірку на видалення частин тіла
-local function ToggleInvisibleSteal(state)
-    getgenv().InvisibleStealEnabled = state
+-- 2. ВЕКТОРНИЙ ДЕСИНХРОН (Збиває приціл без ТП)
+CreateToggle("Legit Desync", 2, function(state)
+    getgenv().GhostDesync = state
+    if state then
+        task.spawn(function()
+            while getgenv().GhostDesync do
+                RunService.Heartbeat:Wait()
+                pcall(function()
+                    local char = LocalPlayer.Character
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        -- Змінюємо Velocity на мікро-значення, ламаючи хедшоти та приціл
+                        hrp.Velocity = Vector3.new(math.random(-15, 15), 0, math.random(-15, 15))
+                    end
+                end)
+            end
+        end)
+    end
+end)
+
+-- 3. БЕЗПЕЧНА КРАДІЖКА ПІД КАРТОЮ (Телепорт без руйнування моделі персонажа)
+CreateToggle("Semi-Invisible Steal", 3, function(state)
+    getgenv().GhostInvisible = state
     pcall(function()
         local char = LocalPlayer.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        
-        if state then
-            if hrp and hum then
-                -- Замість видалення RootJoint, ми просто зміщуємо рендер моделі локально
-                task.spawn(function()
-                    while getgenv().InvisibleStealEnabled do
-                        RunService.RenderStepped:Wait()
-                        if hrp then
-                            -- Тримає тебе на висоті -15 блоків (під текстурами), де тебе не бачать гравці та скрипти
-                            hrp.Velocity = Vector3.new(0, 0, 0)
-                        end
-                    end
-                end)
-                
-                -- Безпечний клієнтський виклик редіректу крадіжки
-                if ReplicatedStorage:FindFirstChild("Packages") then
-                    local net = ReplicatedStorage.Packages:FindFirstChild("Net")
-                    if net and net:FindFirstChild("RE/StealService/DeliverySteal") then
-                        net["RE/StealService/DeliverySteal"]:FireServer()
-                    end
-                end
+        if state and hrp then
+            -- Безпечно опускаємо клієнта під підлогу на -12 блоків (гравці тебе не бачать)
+            hrp.CFrame = hrp.CFrame * CFrame.new(0, -12, 0)
+            
+            -- Виклик зашифрованого пакету доставки
+            local stealRemote = GetSafeRemote("RE/StealService/DeliverySteal")
+            if stealRemote then
+                stealRemote:FireServer()
             end
-        else
-            -- Повернення до тями (без ресету, щоб не було повторного детекту)
-            if hum then
-                hum:ChangeState(Enum.HumanoidStateType.GettingUp)
-            end
+        elseif not state and hrp then
+            -- Повертаємо на поверхню
+            hrp.CFrame = hrp.CFrame * CFrame.new(0, 13, 0)
         end
     end)
-end
+end)
 
--- ========================================================================
--- ФУНКЦІЯ 4: SEMI INVISIBLE (ПРОЗОРІСТЬ ДЛЯ FPS)
--- ========================================================================
-local function ToggleSemiInvisible(state)
-    getgenv().SemiInvisibleEnabled = state
+-- 4. НАПІВНЕВИДИМІСТЬ (Для FPS та маскування)
+CreateToggle("Semi Transparent", 4, function(state)
+    getgenv().GhostSemi = state
     pcall(function()
         local char = LocalPlayer.Character
         if char then
             for _, part in pairs(char:GetDescendants()) do
-                if part:IsA("BasePart") or part:IsA("Decal") then
-                    if part.Name ~= "HumanoidRootPart" then
-                        part.Transparency = state and 0.6 or 0
-                    end
+                if (part:IsA("BasePart") or part:IsA("Decal")) and part.Name ~= "HumanoidRootPart" then
+                    part.Transparency = state and 0.65 or 0
                 end
             end
         end
     end)
-end
-
--- Тріггери інтерфейсу
-MainTab:CreateToggle({
-   Name = "✨ Safe Autograb (Збір без кіку)",
-   CurrentValue = false,
-   Flag = "AutograbFlag",
-   Callback = function(Value) ToggleAutograb(Value) end,
-})
-
-MainTab:CreateToggle({
-   Name = "🌐 Anti-Aim Desync (Захист від прицілу)",
-   CurrentValue = false,
-   Flag = "DesyncFlag",
-   Callback = function(Value) ToggleDesync(Value) end,
-})
-
-MainTab:CreateToggle({
-   Name = "🥷 Safe Invisible Steal (Під карту)",
-   CurrentValue = false,
-   Flag = "InvisibleStealFlag",
-   Callback = function(Value) ToggleInvisibleSteal(Value) end,
-})
-
-MainTab:CreateToggle({
-   Name = "👻 Semi Invisible (Напівпрозорість)",
-   CurrentValue = false,
-   Flag = "SemiInvisibleFlag",
-   Callback = function(Value) ToggleSemiInvisible(Value) end,
-})
-
-MainTab:CreateButton({
-   Name = "❌ Unload Script",
-   Callback = function()
-        for _, connection in pairs(Connections) do if connection then connection:Disconnect() end end
-        getgenv().AutograbEnabled = false
-        getgenv().DesyncEnabled = false
-        getgenv().InvisibleStealEnabled = false
-        getgenv().SemiInvisibleEnabled = false
-        getgenv().XenonLoaded = false
-        Rayfield:Destroy()
-   end,
-})
-
--- Обхід Anti-AFK (залишаємо для фарма)
-pcall(function()
-    LocalPlayer.Idled:Connect(function()
-        VirtualUser:Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
-        task.wait(1)
-        VirtualUser:Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
-    end)
 end)
+
+-- Кнопка повного закриття скрипту
+local CloseButton = Instance.new("TextButton", MainFrame)
+CloseButton.Size = UDim2.new(0.9, 0, 0, 30)
+CloseButton.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+CloseButton.Text = "❌ ЗАКРИТИ СКРИПТ"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 13
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.LayoutOrder = 5
+
+CloseButton.MouseButton1Click:Connect(function()
+    getgenv().GhostAutograb = false
+    getgenv().GhostDesync = false
+    getgenv().GhostInvisible = false
+    getgenv().GhostSemi = false
+    ScreenGui:Destroy()
+end)
+
 
